@@ -1,5 +1,5 @@
 use std::fs;
-use std::io::{BufRead, BufReader};
+//use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
@@ -161,31 +161,12 @@ fn run_command_live(dir: &Path, program: &str, args: &[&str]) {
     let mut child = Command::new(program)
         .args(args)
         .current_dir(dir)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
+        .stdout(Stdio::inherit()) // Låter Docker skriva direkt till din terminal
+        .stderr(Stdio::inherit()) // Docker Compose skickar grafik/loggar hit
         .stdin(Stdio::null())
         .spawn()
         .expect("Misslyckades med att starta kommandot");
 
-    let stdout = child.stdout.take().expect("Kunde inte öppna stdout");
-    let stderr = child.stderr.take().expect("Kunde inte öppna stderr");
-
-    let stdout_reader = BufReader::new(stdout);
-    let stderr_reader = BufReader::new(stderr);
-
-    let stdout_handle = std::thread::spawn(move || {
-        for line in stdout_reader.lines().flatten() {
-            println!("{}", line);
-        }
-    });
-
-    let stderr_handle = std::thread::spawn(move || {
-        for line in stderr_reader.lines().flatten() {
-            eprintln!("{}", line);
-        }
-    });
-
-    let _ = stdout_handle.join();
-    let _ = stderr_handle.join();
-    let _ = child.wait().expect("Kommandot misslyckades");
+    let _ = child.wait().expect("Kommandot misslyckades under körning");
 }
+
