@@ -75,7 +75,10 @@ fn main() {
 
     // Starta de utvalda projekten
     println!("\n=== STARTAR PROJEKT ===");
-    for dir in &projects_to_start {
+    let total_projects = projects_to_start.len();
+    for (index, dir) in projects_to_start.iter().enumerate() {
+        let projects_left = total_projects - index;
+        println!("\nProjekt kvar att starta: {projects_left}");
         println!("\nStartar i: {:?}", dir);
         run_command_live(dir, "docker", &["compose", "up", "-d"]);
     }
@@ -169,4 +172,3 @@ fn run_command_live(dir: &Path, program: &str, args: &[&str]) {
 
     let _ = child.wait().expect("Kommandot misslyckades under körning");
 }
-
